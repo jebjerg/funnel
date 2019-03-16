@@ -1,0 +1,3 @@
+--handler ./logging.so --continue
+--domain redd.it --handler ./reddit.so#handler_shorturl
+--condition ./reddit.so --handler ./reddit.so

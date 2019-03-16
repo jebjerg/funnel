@@ -1,0 +1,5 @@
+*.o
+*.so
+main
+*.swp
+.gdb_history
