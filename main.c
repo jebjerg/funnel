@@ -12,15 +12,23 @@
 #define RULES_MAX 100
 int running = 1;
 
+int pipefd[2];
+struct engine *engine;
+
 void sighandler(int num) {
 	switch (num) {
 		case SIGINT:
-			exit(1);
-			// TODO:
+			DEBUG("shutting down\n");
+			write(pipefd[1], NULL, 0);
 			running = 0;
 			break;
 		case SIGHUP:
-			// reload config
+			// TODO: keep fallback copy
+			DEBUG("reload config\n");
+			if (engine_load_rules(engine) != 0) {
+				DEBUG("Unable to load rules, abort\n");
+				exit(1);
+			}
 			break;
 		default:
 			break;
@@ -28,50 +36,54 @@ void sighandler(int num) {
 }
 
 int main(int argc, char **argv) {
-	/*
-
-	puts(buf);
-	return 1;
-	*/
-	struct rule **ruleset = malloc((sizeof *ruleset) * 100);
-	size_t num_rules = 0;
-
-	if (parse_config("rules.txt", ruleset, &num_rules)) {
-		DEBUG("aww");
+	if (pipe(pipefd) == -1) {
 		goto out;
 	}
 
-	if (ruleset == NULL || num_rules == 0) {
-		DEBUG("no rules");
-		goto out;
+	char *rules_config = argc > 1 ? argv[1] : "rules.txt";
+	engine = create_engine(rules_config);
+	if (engine == NULL) {
+		DEBUG("unable to create engine from rules %s\n", rules_config);
+		goto destroy;
 	}
 
-	DEBUG("loaded %ld rules\n", num_rules);
-
-	struct context ctx = {
-		.url = "https://reddit.com/foo.png",
-		.status = CTX_NONE,
-	};
-	evaluate_rules(&ctx, ruleset, num_rules);
-
-	/*
 	signal(SIGINT, sighandler);
 	signal(SIGHUP, sighandler);
 
-	mkfifo("queue", 0666);
-	int fd = open("queue", O_RDONLY);
-	while (running) {
-		char buf[512];
-		read(fd, buf, sizeof(buf));
-		printf("got \"%s\"!\n", buf);
+	char *fifo = "queue";
+	mkfifo(fifo, 0666);
+	int fd = open(fifo, O_RDWR);
 
-		evaluate_rules(&ctx, ruleset, num_rules);
+	while (running) {
+		fd_set readers;
+		struct timeval tv;
+		FD_ZERO(&readers);
+		FD_SET(fd, &readers);
+		FD_SET(pipefd[0], &readers);
+		tv.tv_sec = 5;
+		tv.tv_usec = 0;
+		if (select(fd+1, &readers, NULL, NULL, &tv)) {
+			if (/* shutdown pipe */ FD_ISSET(pipefd[0], &readers)) {
+			} else if (/* fifo */ FD_ISSET(fd, &readers)) {
+				char buf[512];
+				memset(buf, 0, sizeof(buf));
+				int read_n = read(fd, buf, sizeof(buf));
+				if (read_n > 0) {
+					puts(buf);
+					struct context ctx = {
+						.url = buf,
+						.status = CTX_NONE,
+					};
+					engine_evaluate(engine, &ctx);
+				}
+		       }
+		}
 	}
 
 	close(fd);
-	unlink("queue");
-	*/
+	unlink(fifo);
+destroy:
+	destroy_engine(engine);
 out:
-	destroy_rules(ruleset, num_rules);
 	return 0;
 }

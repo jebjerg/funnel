@@ -4,6 +4,6 @@
 #include "funnel.h"
 
 void handler(struct context *ctx) {
-	puts("LOGGING!");
+	printf("received %s\n", ctx->url);
 	// ctx->status = CTX_HANDLE_SUCCESS;
 }

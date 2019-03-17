@@ -82,15 +82,15 @@ struct rule *parse_rule(char *input, size_t sz) {
 				goto fail;
 		}
 	}
-	goto out;
+out:
+	return rule;
 fail:
 	DEBUG("error while parsing rule line: %s\n", copy);
 	if (rule != NULL) {
 		free(rule);
 	}
 	rule = NULL;
-out:
-	return rule;
+	goto out;
 }
 
 void strip_line(char *line, size_t sz) {
@@ -99,7 +99,7 @@ void strip_line(char *line, size_t sz) {
 }
 
 // TODO..
-int parse_config(char *fn, struct rule **ruleset, size_t *num_rules) {
+int parse_rules(char *fn, struct rule **ruleset, size_t *num_rules) {
 	FILE *rules_f = fopen(fn, "r");
 	if (!rules_f) {
 		return 1;

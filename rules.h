@@ -29,7 +29,7 @@ struct rule {
 };
 
 struct rule *parse_rule(char *input, size_t sz);
-int parse_config(char *fn, struct rule **ruleset, size_t *num_rules);
+int parse_rules(char *fn, struct rule **ruleset, size_t *num_rules);
 void destroy_rules(struct rule **ruleset, size_t num_rules);
 
 #endif /* RULE_H */

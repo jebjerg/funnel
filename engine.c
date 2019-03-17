@@ -2,10 +2,60 @@
 #include <dlfcn.h>
 #include "engine.h"
 
-void evaluate_rules(struct context *ctx, struct rule **rules, size_t num_rules) {
+struct engine *create_engine(char *rules_fn) {
+	struct engine *engine = malloc(sizeof(*engine));
+	memset(engine, 0, sizeof(*engine));
+	engine->rules_fn = strdup(rules_fn);
+
+	if (engine_load_rules(engine) != 0) {
+		goto destroy;
+	}
+out:
+	return engine;
+destroy:
+	if (engine != NULL) {
+		free(engine);
+		engine = NULL;
+	}
+	goto out;
+}
+
+void destroy_engine(struct engine *engine) {
+	if (engine == NULL) {
+		return;
+	}
+	destroy_rules(engine->ruleset, engine->num_rules);
+	if (engine->rules_fn != NULL) {
+		free(engine->rules_fn);
+		engine->rules_fn = NULL;
+	}
+	if (engine != NULL) {
+		free(engine);
+		engine = NULL;
+	}
+}
+
+int engine_load_rules(struct engine *engine) {
+	if (engine->ruleset == NULL) {
+		engine->ruleset = malloc((sizeof *(engine->ruleset)) * 100);
+	}
+	if (parse_rules(engine->rules_fn, engine->ruleset, &(engine->num_rules))) {
+		DEBUG("aww");
+		return 1;
+	}
+
+	if (engine->ruleset == NULL || engine->num_rules == 0) {
+		DEBUG("no rules");
+		return 1;
+	}
+	DEBUG("loaded %ld rules\n", engine->num_rules);
+	return 0;
+}
+
+void engine_evaluate(struct engine *engine, struct context *ctx) {
 	struct rule *rule;
-	for (int i = 0; i < num_rules; i++) {
-		rule = rules[i];
+	for (int i = 0; i < engine->num_rules; i++) {
+		rule = engine->ruleset[i];
 		if (/* native domain condition */ rule->domain != NULL && !strstr(ctx->url, rule->domain)) {
 			DEBUG("rule[%d:%s] DIDNT match: %s\n", i, rule->condition_fp, "native domain condition failed");
 			continue;
