@@ -3,9 +3,14 @@
 #include "engine.h"
 
 struct engine *create_engine(char *rules_fn) {
-	struct engine *engine = malloc(sizeof(*engine));
-	memset(engine, 0, sizeof(*engine));
+	struct engine *engine = calloc(1, sizeof(*engine));
+	if (engine == NULL){
+		goto out;
+	}
 	engine->rules_fn = strdup(rules_fn);
+	if (engine->rules_fn == NULL) {
+		goto out;
+	}
 
 	if (engine_load_rules(engine) != 0) {
 		goto destroy;
@@ -37,7 +42,11 @@ void destroy_engine(struct engine *engine) {
 
 int engine_load_rules(struct engine *engine) {
 	if (engine->ruleset == NULL) {
-		engine->ruleset = malloc((sizeof *(engine->ruleset)) * 100);
+		engine->ruleset = calloc(1, sizeof(*(engine->ruleset)) * RULES_MAX);
+		if (engine->ruleset == NULL) {
+			DEBUG("Unable to allocate ruleset");
+			return 1;
+		}
 	}
 	if (parse_rules(engine->rules_fn, engine->ruleset, &(engine->num_rules))) {
 		DEBUG("aww");

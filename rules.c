@@ -31,8 +31,10 @@ static struct option rule_opts[] = {
 };
 
 struct rule *parse_rule(char *input, size_t sz) {
-	struct rule *rule = malloc(sizeof(*rule));
-	memset(rule, 0, sizeof(*rule));
+	struct rule *rule = calloc(1, sizeof(*rule));
+	if (rule == NULL) {
+		goto out;
+	}
 	char *copy = input;
 
 
@@ -127,18 +129,12 @@ void destroy_rules(struct rule **ruleset, size_t num_rules) {
 	for (size_t i = 0; i < num_rules; i++) {
 		struct rule *rule = ruleset[i];
 
-		if (rule->domain)
-			free(rule->domain);
-		if (rule->path)
-			free(rule->path);
-		if (rule->handler_fp)
-			free(rule->handler_fp);
-		if (rule->handler_symbol)
-			free(rule->handler_symbol);
-		if (rule->condition_fp)
-			free(rule->condition_fp);
-		if (rule->condition_symbol)
-			free(rule->condition_symbol);
+		FREE(rule->domain);
+		FREE(rule->path);
+		FREE(rule->handler_fp);
+		FREE(rule->handler_symbol);
+		FREE(rule->condition_fp);
+		FREE(rule->condition_symbol);
 
 		if (rule->handler_handler != NULL) {
 			dlclose(rule->handler_handler);
@@ -146,7 +142,7 @@ void destroy_rules(struct rule **ruleset, size_t num_rules) {
 		if (rule->condition_handler != NULL) {
 			dlclose(rule->condition_handler);
 		}
-		free(rule);
+		FREE(rule);
 	}
-	free(ruleset);
+	FREE(ruleset);
 }

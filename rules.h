@@ -32,4 +32,8 @@ struct rule *parse_rule(char *input, size_t sz);
 int parse_rules(char *fn, struct rule **ruleset, size_t *num_rules);
 void destroy_rules(struct rule **ruleset, size_t num_rules);
 
+#ifndef RULES_MAX
+#	define RULES_MAX 100
+#endif
+
 #endif /* RULE_H */

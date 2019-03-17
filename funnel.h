@@ -36,4 +36,12 @@ int submit_context(struct context *ctx); /* (re)submit context */
 #	define DEBUG(...)
 #endif
 
+#define FREE(ptr) 		\
+{				\
+	if ((ptr) != NULL) {	\
+		free(ptr);	\
+		ptr = NULL;	\
+	}			\
+}
+
 #endif /* FUNNEL_H */
