@@ -1,3 +1,9 @@
+MAJOR = 0
+MINOR = 1
+PATCHLEVEL = 0
+
+VERSION = $(MAJOR).$(MINOR).$(PATCHLEVEL)
+
 all: main reddit.so logging.so
 
 %.o: CFLAGS+=-g
@@ -18,4 +24,7 @@ clean:
 sloc: $(shell ls *.c *.h)
 	gcc -E -fpreprocessed -dD -P $^ | wc -l
 
-.PHONY: clean sloc
+sign:
+	env GPG_TTY=$(shell tty) git tag -s v$(VERSION) HEAD
+
+.PHONY: clean sloc sign
