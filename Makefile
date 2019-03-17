@@ -14,3 +14,8 @@ main: main.o rules.o engine.o
 
 clean:
 	rm -f *.o *.so main
+
+sloc: $(shell ls *.c *.h)
+	gcc -E -fpreprocessed -dD -P $^ | wc -l
+
+.PHONY: clean sloc
