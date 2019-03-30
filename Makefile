@@ -1,5 +1,5 @@
 MAJOR = 0
-MINOR = 1
+MINOR = 2
 PATCHLEVEL = 0
 
 VERSION = $(MAJOR).$(MINOR).$(PATCHLEVEL)
@@ -10,13 +10,13 @@ all: main reddit.so logging.so
 %.o: %.c
 	gcc -c $< $(CFLAGS)
 
-%.so: CFLAGS+=-shared
+%.so: LDFLAGS+=-shared
 %.so: %.o
-	gcc -o $@ $< $(CFLAGS)
+	gcc -o $@ $< $(LDFLAGS)
 
-main: CFLAGS+=-ldl
+main: LDFLAGS+=-ldl -export-dynamic
 main: main.o rules.o engine.o
-	gcc  -o $@ $^ $(CFLAGS)
+	gcc -o $@ $^ $(LDFLAGS)
 
 clean:
 	rm -f *.o *.so main

@@ -25,7 +25,7 @@ struct context {
 int condition(struct context *ctx, void *parameters);
 void handler(struct context *ctx);
 
-// exported rule engine functions intended for modules
+// exported functions (by engine owner) intended for modules
 int submit_url(char *url); /* (re)submit url for rule matching */
 int submit_context(struct context *ctx); /* (re)submit context */
 

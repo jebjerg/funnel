@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdio.h>
+#include <dlfcn.h>
 
 #include "funnel.h"
 
@@ -20,5 +21,10 @@ void handler(struct context *ctx) {
 
 void handler_v2(struct context *ctx) {
 	puts("new reddit handler!");
+	ctx->status = CTX_HANDLE_SUCCESS;
+}
+
+void handler_shorturl(struct context *ctx) {
+	submit_url("http://reddit.com/#fixed");
 	ctx->status = CTX_HANDLE_SUCCESS;
 }

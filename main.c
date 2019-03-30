@@ -35,6 +35,22 @@ void sighandler(int num) {
 	}
 }
 
+/* owner of engine is responsible for implementing submit_*.
+ * plugins shouldn't need to check the validity of these function
+ */
+int submit_url(char *url) {
+	struct context ctx = {
+		.url = url,
+		.status = CTX_NONE,
+	};
+	submit_context(&ctx);
+}
+
+int submit_context(struct context *ctx) {
+	engine_evaluate(engine, ctx);
+	FREE(ctx);
+}
+
 int main(int argc, char **argv) {
 	if (pipe(pipefd) == -1) {
 		goto out;
@@ -69,7 +85,6 @@ int main(int argc, char **argv) {
 				memset(buf, 0, sizeof(buf));
 				int read_n = read(fd, buf, sizeof(buf));
 				if (read_n > 0) {
-					puts(buf);
 					struct context ctx = {
 						.url = buf,
 						.status = CTX_NONE,
